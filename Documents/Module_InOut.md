@@ -62,3 +62,6 @@
 ---
 
 ## Module Flow Digram
+Pipeline will allow seqential and parallel processes but mergeing can only be done in the Output node 
+<img width="687" height="297" alt="Screenshot 2026-02-10 at 21 37 03" src="https://github.com/user-attachments/assets/79207f07-ed97-4185-845c-1631764fcc0a" />
+
