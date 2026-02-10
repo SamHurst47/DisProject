@@ -2,18 +2,19 @@
 
 ## Phase 1: Project Setup
 
-* [ ] Confirm project scope with supervisor
-* [ ] Decide input type (single file vs small project)
-* [ ] Choose LLM access method (API / local model)
-* [ ] Set up Git repository
-* [ ] Create Python virtual environment
+* [ ] Decide input type (single file vs small project) **Small Project**
+* [ ] Choose LLM access method (API / local model) **Hybrid**
+* [ ] Set up Git repository 
+* [ ] Create  Environment 
 * [ ] Define project folder structure
+* [ ] Choose 3–5 Python files as test inputs
+* [ ] Decide JSON interaction input and output 
 
 ## Phase 2: Data & Input Handling
 
-* [ ] Collect example Python files (open-source or self-written)
+* [ ] Collect example Python files
 * [ ] Implement code loader (read `.py` files)
-* [ ] Implement code splitter (functions / classes)
+* [ ] Implement code splitter (functions/classes)
 * [ ] Extract comments and docstrings
 * [ ] Add basic input validation
 
@@ -26,8 +27,8 @@
 
 ## Phase 4: Hybrid Review Logic
 
-* [ ] Implement basic rule-based checks (e.g. file size, complexity)
-* [ ] Connect LLM calls to reviewer roles
+* [ ] Implement basic rule-based checks 
+* [ ] Connect LLM calls to reviewer roles 
 * [ ] Run reviewers in parallel or sequence
 * [ ] Validate and parse JSON responses
 
@@ -63,15 +64,3 @@
 * [ ] Prepare figures and tables
 
 ---
-
-## Minimal "Start Tomorrow" To-Do List
-
-If you want the absolute minimum to begin:
-
-* Set up repo + environment
-* Choose 3–5 Python files as test inputs
-* Define reviewer roles
-* Write one working LLM reviewer
-* Return structured JSON output
-
-Once that works, everything else builds naturally.
