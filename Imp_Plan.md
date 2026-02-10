@@ -2,7 +2,7 @@
 
 ## Phase 1: Project Setup
 
-* [ ] Decide input type (single file vs small project) **Small Project**
+* [/] Decide input type (single file vs small project) **Small Project**
 * [ ] Choose LLM access method (API / local model) **Hybrid**
 * [ ] Set up Git repository 
 * [ ] Create  Environment 
