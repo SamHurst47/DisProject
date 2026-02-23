@@ -1,3 +1,11 @@
+"""
+code_review_payload.py
+
+Define the data classes sued thought the pipeline to store the key data set of the review payload, 
+suggested changes and static issues this further ensure the consistent data flow between modules.
+
+Author: Sam Hurst
+"""
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 

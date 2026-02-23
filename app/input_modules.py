@@ -1,3 +1,12 @@
+"""
+input_modules.py
+
+Used to define the different input methods utilising payload define in code_review_payload
+and convert input in to payload format enabling dynamic pipeline execution.
+
+Author: Sam Hurst
+"""
+
 from app.base_module import InputModule
 from app.code_reveiw_payload import CodeReviewPayload
 

@@ -1,3 +1,11 @@
+"""
+base_module.py
+
+Create basic class to be inherited through the pipeline ensuring
+consistent structure of module thought code base
+
+Author: Sam Hurst
+"""
 from abc import ABC, abstractmethod
 
 class PipelineModule(ABC):
