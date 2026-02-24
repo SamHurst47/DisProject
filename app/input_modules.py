@@ -8,7 +8,7 @@ Author: Sam Hurst
 """
 
 from app.base_module import InputModule
-from app.code_reveiw_payload import CodeReviewPayload
+from app.code_review_payload import CodeReviewPayload
 
 class TextInputModule(InputModule):
     """

@@ -10,7 +10,8 @@ Author: Sam Hurst
 from app.pipeline import Pipeline
 from app.input_modules import TextInputModule
 from app.output_modules import PrintOutputModule
-from app.static_modules import Static1
+from app.static_modules import TodoAnalyzer
+from app.llms_modules import CommentReviewAnalyzer, LogicErrorAnalyzer
 
 def build_pipeline(input_module, analyzers, output_module):
     """
@@ -32,17 +33,31 @@ def main():
 
     # Change to other mode simple testing atm
     current_input = TextInputModule(
-        text="def bad_code():\n  pass # TODO fix this", 
+        text="""
+            def is_even(num):
+                
+                #Check if num is even: divisible by 2 with no remainder.
+                #Uses modulo operator: even if num % 2 == 0.
+                #Handles positives correctly (intended logic).
+                
+                return num % 2  # BUG: Returns 0/1 (truthy always except multiples of 2? No—in Python non-zero is True, so positives always "even"!
+
+            # Test cases
+            print(is_even(4))   # Prints True (correct)
+            print(is_even(5))   # Prints True (WRONG: should be False)
+            print(is_even(-3))  # Prints True (quirky, but bugged anyway)
+            """,
         filename="test.py", 
         language="python"
     )
     
     # Could upgrade this to be dynamic but will need updating anyway when build web application 
+# Inside main.py configuration...
+
     active_analyzers = [
-        Static1(),
-        # Flake8Analyzer(),
-        # BanditAnalyzer(),
-        # LLMReviewAnalyzer(model="gemini-3.1") 
+        TodoAnalyzer(), # Runs instantly (Python)
+        CommentReviewAnalyzer(model_name="llama3"), # Runs fast (Small LLM)
+        LogicErrorAnalyzer(model_name="codellama:13b") # Runs slower, but does deep thinking (Large LLM)
     ]
     
     current_output = PrintOutputModule()

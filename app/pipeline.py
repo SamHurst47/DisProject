@@ -11,7 +11,7 @@ import traceback
 from typing import List
 
 from app.base_module import InputModule, OutputModule, AnalyzerModule
-# from app.code_reveiw_payload import CodeReviewPayload # incases needed later 
+# from app.code_review_payload import CodeReviewPayload # incases needed later 
 
 class Pipeline:
     def __init__(self, input_module: InputModule, output_module: OutputModule):
