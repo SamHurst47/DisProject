@@ -10,7 +10,7 @@ import json
 import requests
 
 from app.base_module import AnalyserModule
-from app.code_review_payload import CodeReviewPayload, SuggestedChange
+from app.code_review_payload import SuggestedChange
 
 class BaseOllamaAnalyser(AnalyserModule):
     """

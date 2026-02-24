@@ -33,20 +33,20 @@ class InputModule(PipelineModule):
         return self.read()
 
 
-class AnalyzerModule(PipelineModule):
+class AnalyserModule(PipelineModule):
     """
     Base class for analysis modules (e.g., LLM Reviewers, Static Linters).
-    Takes a payload, analyzes it, and appends/returns results.
+    Takes a payload, analyses it, and appends/returns results.
     """
 
     @abstractmethod
-    def analyze(self, data):
+    def analyse(self, data):
         """Performs the actual analysis logic."""
         pass
 
     def process(self, data):
         # Takes the data (CodeReviewPayload), runs analysis, and passes it forward
-        return self.analyze(data)
+        return self.analyse(data)
 
 
 class OutputModule(PipelineModule):

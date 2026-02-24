@@ -26,7 +26,7 @@ class PrintOutputModule(OutputModule):
             print("  No static issues found.")
         else:
             for issue in data.static_issues:
-                # Searches rescord and ouptuts relvant info 
+                # Searches recorded and outputs relevant info 
                 print(f"  * Line {issue.line_number} [{issue.tool_name}] ({issue.severity.upper()}): {issue.message}")
 
         # Print LLMs Suggestions

@@ -10,7 +10,7 @@ Author: Sam Hurst
 import traceback
 from typing import List
 
-from app.base_module import InputModule, OutputModule, AnalyzerModule
+from app.base_module import InputModule, OutputModule, AnalyserModule
 # from app.code_review_payload import CodeReviewPayload # incases needed later 
 
 class Pipeline:
@@ -20,9 +20,9 @@ class Pipeline:
         """
         self.input_module = input_module
         self.output_module = output_module
-        self.middle_modules: List[AnalyzerModule] = []
+        self.middle_modules: List[AnalyserModule] = []
 
-    def add_module(self, module: AnalyzerModule):
+    def add_module(self, module: AnalyserModule):
         """
         Simple procedure to add tools to the analytics pipeline
         """

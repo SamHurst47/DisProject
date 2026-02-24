@@ -10,10 +10,10 @@ Author: Sam Hurst
 from app.pipeline import Pipeline
 from app.input_modules import TextInputModule
 from app.output_modules import PrintOutputModule
-from app.static_modules import TodoAnalyzer
-from app.llms_modules import CommentReviewAnalyzer, LogicErrorAnalyzer
+from app.static_modules import TodoAnalyser
+from app.llms_modules import CommentReviewAnalyser, LogicErrorAnalyser
 
-def build_pipeline(input_module, analyzers, output_module):
+def build_pipeline(input_module, analysers, output_module):
     """
     Builder function that assembles the pipeline. 
     The web app will eventually import and use this directly!
@@ -23,8 +23,8 @@ def build_pipeline(input_module, analyzers, output_module):
         output_module=output_module
     )
 
-    for analyzer in analyzers:
-        pipeline.add_module(analyzer)
+    for analyser in analysers:
+        pipeline.add_module(analyser)
 
     return pipeline
 
@@ -54,18 +54,18 @@ def main():
     # Could upgrade this to be dynamic but will need updating anyway when build web application 
 # Inside main.py configuration...
 
-    active_analyzers = [
-        TodoAnalyzer(), # Runs instantly (Python)
-        CommentReviewAnalyzer(model_name="llama3"), # Runs fast (Small LLM)
-        LogicErrorAnalyzer(model_name="codellama:13b") # Runs slower, but does deep thinking (Large LLM)
+    active_analysers = [
+        TodoAnalyser(), # Runs instantly (Python)
+        CommentReviewAnalyser(model_name="llama3"), # Runs fast (Small LLM)
+        LogicErrorAnalyser(model_name="codellama:13b") # Runs slower, but does deep thinking (Large LLM)
     ]
     
     current_output = PrintOutputModule()
 
-    print(f"Building pipeline with {len(active_analyzers)} analyzers...")
+    print(f"Building pipeline with {len(active_analysers)} analysers...")
     pipeline = build_pipeline(
         input_module=current_input,
-        analyzers=active_analyzers,
+        analysers=active_analysers,
         output_module=current_output
     )
 
