@@ -10,7 +10,7 @@ Author: Sam Hurst
 from app.pipeline import Pipeline
 from app.input_modules import TextInputModule
 from app.output_modules import PrintOutputModule
-from app.static_modules import TodoAnalyser
+from app.static_modules import TodoAnalyser, PylintAnalyzer, PygountAnalyzer
 from app.llms_modules import CommentReviewAnalyser, LogicErrorAnalyser
 
 def build_pipeline(input_module, analysers, output_module):
@@ -35,7 +35,7 @@ def main():
     current_input = TextInputModule(
         text="""
             def is_even(num):
-                
+                # TODO hello
                 #Check if num is even: divisible by 2 with no remainder.
                 #Uses modulo operator: even if num % 2 == 0.
                 #Handles positives correctly (intended logic).
@@ -52,10 +52,11 @@ def main():
     )
     
     # Could upgrade this to be dynamic but will need updating anyway when build web application 
-# Inside main.py configuration...
 
     active_analysers = [
         TodoAnalyser(), # Runs instantly (Python)
+        PylintAnalyzer(),
+        PygountAnalyzer(),
         CommentReviewAnalyser(model_name="llama3"), # Runs fast (Small LLM)
         LogicErrorAnalyser(model_name="codellama:13b") # Runs slower, but does deep thinking (Large LLM)
     ]

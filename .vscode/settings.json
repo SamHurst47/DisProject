@@ -5,6 +5,7 @@
         "docstrings",
         "llms",
         "Ollama",
+        "Pygount",
         "utilising"
     ]
 }
