@@ -11,8 +11,12 @@ from app.llms_base_modules import BaseOllamaAnalyser
 class CommentReviewAnalyser(BaseOllamaAnalyser):
     """Focuses on suggesting reviews for comment based issues"""
     
-    def __init__(self, model_name: str = "llama3"):
-        super().__init__(model_name=model_name, task_name="Comment Review")
+    def __init__(self, model_name: str = "llama3", reflection_iterations: bool = False):
+        super().__init__(
+            model_name=model_name, 
+            task_name="Comment Review",
+            reflection_iterations=reflection_iterations
+        )
 
     # Build in self authenticate to check referring to correct info 
     def build_prompt(self, data) -> str:
@@ -30,9 +34,12 @@ class CommentReviewAnalyser(BaseOllamaAnalyser):
 class LogicErrorAnalyser(BaseOllamaAnalyser):
     """Focuses on bugs, edge cases, and structural errors."""
     
-    def __init__(self, model_name: str = "codellama"):
-        super().__init__(model_name=model_name, task_name="Logic and Error Check")
-
+    def __init__(self, model_name: str = "codellama", reflection_iterations: int = 0):
+        super().__init__(
+            model_name=model_name, 
+            task_name="Logic and Error Check",
+            reflection_iterations=reflection_iterations
+        )
     def build_prompt(self, data) -> str:
         # Can feed in static tool info
         static_context = ""

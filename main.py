@@ -57,8 +57,8 @@ def main():
         TodoAnalyser(), # Runs instantly (Python)
         PylintAnalyzer(),
         PygountAnalyzer(),
-        CommentReviewAnalyser(model_name="llama3"), # Runs fast (Small LLM)
-        LogicErrorAnalyser(model_name="codellama:13b") # Runs slower, but does deep thinking (Large LLM)
+        CommentReviewAnalyser(model_name="llama3", reflection_iterations=1), # Runs fast (Small LLM)
+        LogicErrorAnalyser(model_name="codellama:13b", reflection_iterations=0) # Runs slower, but does deep thinking (Large LLM)
     ]
     
     current_output = PrintOutputModule()
