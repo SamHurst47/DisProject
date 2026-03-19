@@ -18,11 +18,19 @@ class BaseOllamaAnalyser(AnalyserModule):
     Handles auto-pulling missing models, HTTP requests, JSON validation, 
     positive Feedback loops and payload updating.
     """
-    def __init__(self, model_name: str, task_name: str, host: str = "http://localhost:11434", reflection_iterations: int = 0):
+    def __init__(self, model_name: str, task_name: str, host: str = "http://localhost:11434", 
+                 reflection_iterations: int = 0, 
+                 depends_on_static: list = None, 
+                 depends_on_llm: list = None):
+        
         self.model_name = model_name
         self.task_name = task_name
         self.host = host
         self.reflection_iterations = reflection_iterations
+        
+        self.depends_on_static = depends_on_static
+        self.depends_on_llm = depends_on_llm
+        
         self.generate_url = f"{self.host}/api/generate"
         self.tags_url = f"{self.host}/api/tags"
         self.pull_url = f"{self.host}/api/pull"
@@ -94,6 +102,47 @@ class BaseOllamaAnalyser(AnalyserModule):
             response = requests.post(self.generate_url, json=payload)
             response.raise_for_status()
             return response.json()
+
+    def _gather_pipeline_context(self, data) -> str:
+        """
+        Collects previously output data form selected modules specified in 
+        class initiation so they can be return to context of the prompt.
+        """
+        # Creates list to temp store collected items.
+        context_blocks = []
+
+        # Finds static issues flagged
+        if data.static_issues:
+            filtered_static = data.static_issues
+            if self.depends_on_static: 
+                filtered_static = [i for i in data.static_issues if i.tool_name in self.depends_on_static]
+            
+            if filtered_static:
+                context_blocks.append("--- STATIC ANALYSIS FINDINGS ---")
+                for issue in filtered_static:
+                    context_blocks.append(f"Line {issue.line_number} [{issue.tool_name}]: {issue.message}")
+                context_blocks.append("") 
+
+        # Finds LLM issues flagged
+        if data.suggested_changes:
+            filtered_llm = data.suggested_changes
+            if self.depends_on_llm: 
+                filtered_llm = [
+                    c for c in data.suggested_changes 
+                    if any(task.lower() in c.reviewer.lower() for task in self.depends_on_llm)
+                ]
+
+            if filtered_llm:
+                context_blocks.append("--- PREVIOUS REVIEWER SUGGESTIONS ---")
+                for change in filtered_llm:
+                    context_blocks.append(f"Lines {change.line_start}-{change.line_end} ({change.reviewer}):")
+                    context_blocks.append(f"Problem: {change.explanation}")
+                    context_blocks.append(f"Suggested Fix:\n{change.suggested_code}\n")
+
+        if not context_blocks:
+            return "No relevant previous context found."
+
+        return "\n".join(context_blocks)
 
     def analyse(self, data):
         # check model exists
