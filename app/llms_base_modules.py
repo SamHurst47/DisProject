@@ -2,41 +2,51 @@
 llms_base_modules.py
 
 Create a base class able to call LLMs of various models 
-pulling them form the intern where needed.
+pulling them from the internet where needed, supporting multiple providers.
 
 Author: Sam Hurst
 """
 import json
+import time
 import requests
 
 from app.base_module import AnalyserModule
 from app.code_review_payload import SuggestedChange
 
-class BaseOllamaAnalyser(AnalyserModule):
+class BaseLLMAnalyser(AnalyserModule):
     """
-    Base engine for any local Ollama LLM step.
-    Handles auto-pulling missing models, HTTP requests, JSON validation, 
-    positive Feedback loops and payload updating.
+    Base engine for any LLM step.
+    Handles local (Ollama) or external (API) models, JSON validation, 
+    positive feedback loops, and payload updating.
     """
-    def __init__(self, model_name: str, task_name: str, host: str = "http://localhost:11434", 
+    def __init__(self, model_name: str, task_name: str, 
+                 provider: str = "ollama", # 'ollama' or 'api'
+                 host: str = "http://localhost:11434", 
+                 api_key: str = None,
                  reflection_iterations: int = 0, 
                  depends_on_static: list = None, 
                  depends_on_llm: list = None):
         
         self.model_name = model_name
         self.task_name = task_name
+        self.provider = provider.lower()
         self.host = host
+        self.api_key = api_key
         self.reflection_iterations = reflection_iterations
         
         self.depends_on_static = depends_on_static
         self.depends_on_llm = depends_on_llm
         
+        # Ollama specific URLs
         self.generate_url = f"{self.host}/api/generate"
         self.tags_url = f"{self.host}/api/tags"
         self.pull_url = f"{self.host}/api/pull"
 
     def _ensure_model_exists(self):
-        """Check is model is present locally or need pulling form internet."""
+        """Check if model is present locally (Ollama only)."""
+        if self.provider != "ollama":
+            return
+
         try:
             # List current Models 
             tags_response = requests.get(self.tags_url)
@@ -65,50 +75,31 @@ class BaseOllamaAnalyser(AnalyserModule):
         raise NotImplementedError("Subclasses must build their own prompts!")
 
     def build_reflection_prompt(self, data, draft_json_string: str) -> str:
-            """
-            Builds the prompt for the second 'feedback loop' pass.
-            Subclasses can override this if they want a highly specific critique.
-            """
-            return f"""
-            You are a strict Principal Software Engineer. 
-            You previously drafted these code review suggestions for the following {data.language} code.
-            
-            Original Code:
-            ```
-            {data.raw_content}
-            ```
-            
-            Draft Suggestions:
-            ```json
-            {draft_json_string}
-            ```
-            
-            CRITIQUE TASK:
-            1. Remove any suggestions that are false positives or overly pedantic.
-            2. Improve the 'suggested_code' fixes to be more robust.
-            3. Clarify the 'explanation' fields.
-            
-            Return ONLY a JSON object containing the final, polished 'suggestions' list.
-            """
-
-    def _call_ollama(self, prompt: str) -> dict:
-            """Method to handle the actual HTTP request to Ollama."""
-            payload = {
-                "model": self.model_name,
-                "prompt": prompt,
-                "stream": False,
-                "format": "json" 
-            }
-            response = requests.post(self.generate_url, json=payload)
-            response.raise_for_status()
-            return response.json()
+        
+        return f"""
+        You are a strict Principal Software Engineer. 
+        You previously drafted these code review suggestions for the following {data.language} code.
+        
+        Original Code:
+        ```
+        {data.raw_content}
+        ```
+        
+        Draft Suggestions:
+        ```json
+        {draft_json_string}
+        ```
+        
+        CRITIQUE TASK:
+        1. Remove any suggestions that are false positives or overly pedantic.
+        2. Improve the 'suggested_code' fixes to be more robust.
+        3. Clarify the 'explanation' fields.
+        
+        Return ONLY a JSON object containing the final, polished 'suggestions' list.
+        """
 
     def _gather_pipeline_context(self, data) -> str:
-        """
-        Collects previously output data form selected modules specified in 
-        class initiation so they can be return to context of the prompt.
-        """
-        # Creates list to temp store collected items.
+        """Collects previously output data from selected modules."""
         context_blocks = []
 
         # Finds static issues flagged
@@ -144,6 +135,51 @@ class BaseOllamaAnalyser(AnalyserModule):
 
         return "\n".join(context_blocks)
 
+
+    def _call_llm(self, prompt: str) -> tuple[str, float]:
+        """Routes the prompt to the correct backend based on self.provider."""
+        if self.provider == "ollama":
+            return self._call_ollama_backend(prompt)
+        elif self.provider == "api":
+            return self._call_api_backend(prompt)
+        else:
+            raise ValueError(f"Unknown LLM provider: {self.provider}")
+
+    def _call_ollama_backend(self, prompt: str) -> tuple[str, float]:
+        payload = {
+            "model": self.model_name,
+            "prompt": prompt,
+            "stream": False,
+            "format": "json" 
+        }
+        response = requests.post(self.generate_url, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("response", "{}"), data.get("eval_duration", 0) / 1e9
+
+    def _call_api_backend(self, prompt: str) -> tuple[str, float]:
+        """Foundation for external APIs (e.g., OpenAI, Anthropic)."""
+        start_time = time.time()
+        
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": self.model_name,
+            "messages": [{"role": "user", "content": prompt}],
+            "response_format": {"type": "json_object"}
+        }
+        
+        response = requests.post(f"{self.host}/v1/chat/completions", json=payload, headers=headers)
+        response.raise_for_status()
+        
+        data = response.json()
+        result_string = data["choices"][0]["message"]["content"]
+        duration = time.time() - start_time
+        
+        return result_string, duration
+
     def analyse(self, data):
         # check model exists
         self._ensure_model_exists()
@@ -152,33 +188,23 @@ class BaseOllamaAnalyser(AnalyserModule):
         
         # Self Contained Running engin to stop major pipeline faults
         try:
-            print(f"[{self.task_name}] Generating draft review...")
-            current_result = self._call_ollama(initial_prompt)
-            current_json_string = current_result.get("response", "{}")
+            print(f"[{self.task_name}] Generating draft review using {self.provider.upper()}...")
             
-            # Record base generation time
-            total_duration = current_result.get("eval_duration", 0) / 1e9
+            current_json_string, total_duration = self._call_llm(initial_prompt)
 
-            # Loops directed amount of times
             for i in range(self.reflection_iterations):
                 print(f"[{self.task_name}] Running reflection pass {i + 1}/{self.reflection_iterations}...")
                 
-                # Feed the CURRENT string back into the prompt
                 reflection_prompt = self.build_reflection_prompt(data, current_json_string)
-                reflection_result = self._call_ollama(reflection_prompt)
                 
-                # Updates the response
-                current_json_string = reflection_result.get("response", "{}")
+                current_json_string, step_duration = self._call_llm(reflection_prompt)
+                total_duration += step_duration
                 
-                # Add loop time to the total
-                total_duration += (reflection_result.get("eval_duration", 0) / 1e9)
                 data.metadata[f"{self.task_name}_reflected_passes"] = self.reflection_iterations
 
-            # Parse the final output 
             llm_output = json.loads(current_json_string)
             suggestions = llm_output.get("suggestions", [])
 
-            # Fills the suggestion data class out and added to list of issues
             for item in suggestions:
                 suggestion = SuggestedChange(
                     line_start=item.get("line_start", 0),
@@ -186,18 +212,15 @@ class BaseOllamaAnalyser(AnalyserModule):
                     original_code=item.get("original_code", ""),
                     suggested_code=item.get("suggested_code", ""),
                     explanation=item.get("explanation", ""),
-                    reviewer=f"Ollama - {self.task_name} ({self.model_name})" + (" [Reflected]" if self.reflection_iterations else "")
+                    reviewer=f"{self.provider.title()} - {self.task_name} ({self.model_name})" + (" [Reflected]" if self.reflection_iterations else "")
                 )
                 data.add_suggestion(suggestion)
 
-            # Recodes execution in metadata 
             metric_key = self.task_name.lower().replace(" ", "_")
             data.metadata[f"{metric_key}_total_duration_secs"] = total_duration
 
         except Exception as e:
-            # Catch bad JSON, connection errors, etc., and log them to metadata
             print(f"[{self.task_name}] Analyser failed: {e}")
             data.metadata[f"{self.task_name}_error"] = str(e)
 
-        # Always return the data structure for next module to orate on
         return data

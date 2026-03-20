@@ -11,7 +11,7 @@ from app.pipeline import Pipeline
 from app.input_modules import TextInputModule
 from app.output_modules import PrintOutputModule
 from app.static_modules import TodoAnalyser, PylintAnalyzer, PygountAnalyzer
-from app.llms_modules import CommentReviewAnalyser, LogicErrorAnalyser
+from app.llms_modules import CommentReviewAnalyser, LogicErrorAnalyser, CoordinatorAnalyser
 
 def build_pipeline(input_module, analysers, output_module):
     """
@@ -58,7 +58,8 @@ def main():
         PylintAnalyzer(),
         PygountAnalyzer(),
         CommentReviewAnalyser(model_name="llama3", reflection_iterations=1,depends_on_static=["Pylint"]), # Runs fast (Small LLM)
-        LogicErrorAnalyser(model_name="codellama:13b", reflection_iterations=0,depends_on_llm=["Comment Review"]) # Runs slower, but does deep thinking (Large LLM)
+        LogicErrorAnalyser(model_name="codellama:13b", reflection_iterations=0,depends_on_llm=["Comment Review"]), # Runs slower, but does deep thinking (Large LLM)
+        CoordinatorAnalyser(model_name="llama3",reflection_iterations=1, depends_on_static=["Pylint"], depends_on_llm=["Comment Review", "Logic and Error Check"])
     ]
     
     current_output = PrintOutputModule()
