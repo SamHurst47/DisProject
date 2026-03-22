@@ -6,12 +6,15 @@ will be replaced once web application built
 
 Author: Sam Hurst
 """
-
+import os
+from dotenv import load_dotenv
 from app.pipeline import Pipeline
 from app.input_modules import TextInputModule
 from app.output_modules import PrintOutputModule
 from app.static_modules import TodoAnalyser, PylintAnalyzer, PygountAnalyzer
-from app.llms_modules import CommentReviewAnalyser, LogicErrorAnalyser
+from app.llms_modules import CommentReviewAnalyser, LogicErrorAnalyser, CoordinatorAnalyser
+
+load_dotenv()
 
 def build_pipeline(input_module, analysers, output_module):
     """
@@ -51,6 +54,8 @@ def main():
         language="python"
     )
     
+    GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+
     # Could upgrade this to be dynamic but will need updating anyway when build web application 
 
     active_analysers = [
@@ -58,7 +63,16 @@ def main():
         PylintAnalyzer(),
         PygountAnalyzer(),
         CommentReviewAnalyser(model_name="llama3", reflection_iterations=1,depends_on_static=["Pylint"]), # Runs fast (Small LLM)
-        LogicErrorAnalyser(model_name="codellama:13b", reflection_iterations=0,depends_on_llm=["Comment Review"]) # Runs slower, but does deep thinking (Large LLM)
+        LogicErrorAnalyser(model_name="codellama:13b", reflection_iterations=0,depends_on_llm=["Comment Review"]), # Runs slower, but does deep thinking (Large LLM)
+        CoordinatorAnalyser(
+            model_name="gemini-2.5-flash", 
+            provider="api",
+            host="https://generativelanguage.googleapis.com",
+            api_key=GEMINI_KEY, 
+            reflection_iterations=1,
+            depends_on_static=["Pylint"],
+            depends_on_llm=["Comment Review"]
+        )
     ]
     
     current_output = PrintOutputModule()
