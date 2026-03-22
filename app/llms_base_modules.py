@@ -158,24 +158,44 @@ class BaseLLMAnalyser(AnalyserModule):
         return data.get("response", "{}"), data.get("eval_duration", 0) / 1e9
 
     def _call_api_backend(self, prompt: str) -> tuple[str, float]:
-        """Foundation for external APIs (e.g., OpenAI, Anthropic)."""
+        """Calls the Google Gemini API natively."""
         start_time = time.time()
         
+        # Clean the key of any accidental spaces or newlines
+        clean_key = str(self.api_key).strip()
+        
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
+        
         payload = {
-            "model": self.model_name,
-            "messages": [{"role": "user", "content": prompt}],
-            "response_format": {"type": "json_object"}
+            "contents": [{
+                "parts": [{"text": prompt}]
+            }],
+            "generationConfig": {
+                "responseMimeType": "application/json" 
+            }
         }
         
-        response = requests.post(f"{self.host}/v1/chat/completions", json=payload, headers=headers)
+        # Inject the clean key directly into the URL parameter
+        endpoint = f"{self.host}/v1beta/models/{self.model_name}:generateContent?key={clean_key}"
+        
+        response = requests.post(endpoint, json=payload, headers=headers)
+        
+        # Prints error code
+        if response.status_code != 200:
+            print(f"API Error: {response.status_code} - {response.text}")
+            
         response.raise_for_status()
         
         data = response.json()
-        result_string = data["choices"][0]["message"]["content"]
+        
+        try:
+            result_string = data["candidates"][0]["content"]["parts"][0]["text"]
+        except (KeyError, IndexError):
+            print(f"[{self.task_name}] Unexpected API response structure.")
+            result_string = "{}" 
+            
         duration = time.time() - start_time
         
         return result_string, duration
