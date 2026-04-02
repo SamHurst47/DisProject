@@ -15,7 +15,7 @@ class PrintOutputModule(OutputModule):
     """
 
     def write(self, data):
-        # Nice formatting 
+        # Header Output 
         print("\n" + "="*60)
         print(f" CODE REVIEW REPORT: {data.filename} ({data.language})")
         print("="*60)
