@@ -1,8 +1,8 @@
 """
 optimising_pipeline.py
 
-Usesd as an acitive test file to help opssmie the pices within the piplien such as 
-propmpt and confiruation beofre testing to futher understand the how to mamxiumsie architures.
+used as an active test file to help optimise the pice within the pipeline such as 
+prompt and configuration before testing to further understand the how to maximises architectures features.
 
 Author: Sam Hurst
 """
@@ -65,12 +65,10 @@ def process_user_data(user_id):
 # Sets up subclass to output in easy text formate for viewing optimisation.
 class DebugOutputModule(OutputModule):
     def write(self, data):
-        # Header Output 
-        print("PIPELINE OPTIMIZATION OUTPUT")
-        print("="*60)
+        print("Pipeline Output")
 
         # Print Static Issues
-        print("\n[STATIC ISSUES]")
+        print("\n[Static Issues]")
         if not data.static_issues:
             print("  None found.")
         else:
@@ -101,8 +99,7 @@ class DebugOutputModule(OutputModule):
                     print(f"  - {k}: {v:.2f} seconds")
                 else:
                     print(f"  - {k}: {v}")
-        
-        print("\n" + "="*60)        
+             
         return data
 
 
