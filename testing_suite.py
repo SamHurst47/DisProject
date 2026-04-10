@@ -78,7 +78,7 @@ def load_testing_data(relative_path="testing_data"):
         print("\n")
         
     else:
-        print("  [!] Found the folders, but couldn't find any .py files inside them.")
+        print("Found the folders, but couldn't find any .py files inside them.")
         
     return dataset
 
@@ -144,20 +144,19 @@ def get_configurations():
         "Test_2B_Specialized_Roles": [
             PylintAnalyzer(),
             LogicErrorAnalyser(model_name="llama3", provider="ollama"),
-            SecurityAuditAnalyser(model_name="llama3", provider="ollama"),
+            SecurityAuditAnalyser(model_name="codellama:13b", provider="ollama"),
             PerformanceOptimisationAnalyser(model_name="llama3", provider="ollama")
-        ]
-    }
-"""
+        ],
+
         "Test_3_Iterative_Feedback": [
             PylintAnalyzer(),
             LogicErrorAnalyser(
-                model_name="llama3", 
+                model_name="deepseek-r1:8b", 
                 provider="ollama", 
                 reflection_iterations=2 
             ),
             SecurityAuditAnalyser(
-                model_name="llama3", 
+                model_name="codellama:13b", 
                 provider="ollama", 
                 reflection_iterations=2 
             ),
@@ -179,8 +178,7 @@ def get_configurations():
                 api_key=GEMINI_KEY
             )
         ],
-        # FEATURE 4: Adaptive Model Selection (Deployment Tier: Hybrid)
-        # Outcome: Does using a commercial model for Security catch more than a local model?
+
         "Test_5_Coordinator": [
             PylintAnalyzer(),
             BanditAnalyzer(),
@@ -202,14 +200,14 @@ def get_configurations():
             )
         ],
 
-        # OPTIMAL 1: The "Cost-Effective" Hybrid
-        # Full static triage, local agents for basic review, commercial API for synthesis.
-        "Optimal_Pipeline_Balanced": [
+        # Optimal Tests
+
+        "Optimal_1_Pipeline_Balanced": [
             PylintAnalyzer(),
             BanditAnalyzer(),
             RegexSecretScanner(),
             LogicErrorAnalyser(model_name="llama3", provider="ollama"),
-            PerformanceOptimisationAnalyser(model_name="llama3", provider="ollama"),
+            PerformanceOptimisationAnalyser(model_name="gemma4:e4b", provider="ollama"),
             CoordinatorAnalyser(
                 model_name="gemini-2.5-flash-lite", 
                 provider="api", 
@@ -221,13 +219,13 @@ def get_configurations():
             )
         ],
 
-        "Optimal_Pipeline_Maximum": [
+        "Optimal_2_Pipeline_Maximum": [
             PylintAnalyzer(),
             BanditAnalyzer(),
             RegexSecretScanner(),
             ComplexityAnalyzer(),
             CommentReviewAnalyser(
-                model_name="gemini-2.5-flash-lite", provider="api", host="https://generativelanguage.googleapis.com", api_key=GEMINI_KEY
+                model_name="gemma4:e2b", provider="ollama"
             ),
             LogicErrorAnalyser(
                 model_name="gemini-2.5-flash-lite", provider="api", host="https://generativelanguage.googleapis.com", api_key=GEMINI_KEY
@@ -236,7 +234,7 @@ def get_configurations():
                 model_name="gemini-2.5-flash-lite", provider="api", host="https://generativelanguage.googleapis.com", api_key=GEMINI_KEY
             ),
             CoordinatorAnalyser(
-                model_name="gemini-2.5-flash-lite", # The heaviest, smartest model for the final boss
+                model_name="gemini-2.5-flash-lite",
                 provider="api", 
                 host="https://generativelanguage.googleapis.com", 
                 api_key=GEMINI_KEY,
@@ -246,38 +244,30 @@ def get_configurations():
             )
         ],
         
-        "Optimal_Pipeline_Tiered": [
-            # 1. The Static Triage Layer
+        "Optimal_3_Pipeline_Tiered": [
             PylintAnalyzer(),
             BanditAnalyzer(),
             RegexSecretScanner(),
             ComplexityAnalyzer(),
-            
-            # 2. The Specialist Layer (Mixed Deployment!)
-            # LOCAL: Handles standard logic and complexity (Zero Cost)
             LogicErrorAnalyser(
                 model_name="llama3", 
                 provider="ollama",
                 depends_on_static=["Pylint", "ComplexityScanner"]
             ),
             PerformanceOptimisationAnalyser(
-                model_name="llama3", 
+                model_name="deepseek-r1:8b", 
                 provider="ollama",
                 depends_on_static=["ComplexityScanner"] 
             ),
-            # COMMERCIAL: Upgraded to Gemini for maximum vulnerability detection (Paid/API)
             SecurityAuditAnalyser(
-                model_name="gemini-2.5-flash", 
+                model_name="gemini-2.5-flash-lite", 
                 provider="api",
                 host="https://generativelanguage.googleapis.com",
                 api_key=GEMINI_KEY,
                 depends_on_static=["Bandit", "SecretScanner"] 
             ),
-            
-            # 3. The Commercial Coordinator
-            # Uses a commercial API model to synthesize the mixed local/API outputs
             CoordinatorAnalyser(
-                model_name="gemini-2.5-flash", 
+                model_name="gemini-2.5-flash-lite", 
                 provider="api", 
                 host="https://generativelanguage.googleapis.com",
                 api_key=GEMINI_KEY, 
@@ -288,7 +278,7 @@ def get_configurations():
         ]
         
     }
-"""
+
 # Finds completed test to not rerun
 def get_completed_runs(csv_filename):
     completed = set()
@@ -323,7 +313,7 @@ def run_test():
     configs = get_configurations()
     
     # Guarantee the output directory exists
-    output_dir = "pipeline_testing_output"
+    output_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "..", "pipeline_testing_output"))
     os.makedirs(output_dir, exist_ok=True)
     
     print(f"Starting Testing")
