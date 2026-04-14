@@ -95,9 +95,8 @@ AVAILABLE_MODULES = {
     "LLM: Final Coordinator": {"class": CoordinatorAnalyser, "type": "llm"}
 }
 
-st.title("Dynamic Architecture Builder")
-st.markdown("Build your custom multi-agent pipeline top-to-bottom, configure each node, and execute.")
-
+st.title("AI Code Review Pipeline")
+st.markdown("Build and run a multi-agent code review workflow, configure each reviewer, and analyze pull requests with targeted quality, security, and architecture checks.")
 # File upload and module configuration: add display modules
 col_upload, col_add = st.columns(2)
 
