@@ -1,0 +1,13 @@
+pytest
+pylint
+requests
+python-dotenv
+cryptography
+numpy
+redis
+simplejson
+typing_extensions
+urllib3
+colorama
+flake8
+ipython
