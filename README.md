@@ -4,17 +4,6 @@ The aim of this project is to design and justify an architectural framework and 
 
 ***
 
-## Overview
-
-DisProject orchestrates a configurable pipeline of analysis components, including traditional static tools (e.g., Pylint, Bandit) and intelligent LLM-based agents. The system is designed to support both experimentation and practical code review workflows through a unified interface.
-
-It supports hybrid execution using:
-
-- Local models via Ollama (e.g., Llama3, CodeLlama)
-- Cloud-based models via Google Gemini API
-
-***
-
 ## Key Features
 
 - Dynamic pipeline builder via a Streamlit web interface
