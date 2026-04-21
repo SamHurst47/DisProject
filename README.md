@@ -15,7 +15,7 @@ The aim of this project is to design and justify an architectural framework and 
 
 ***
 
-## Usage
+## Set Up
 
 ### Prerequisites
 
