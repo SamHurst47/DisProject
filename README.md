@@ -133,10 +133,4 @@ By using this system, you agree to the following:
 
 ***
 
-## Author
-
-Sam Hurst
-
-***
-
 
